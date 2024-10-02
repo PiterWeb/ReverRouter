@@ -1,4 +1,5 @@
-import { $UI } from "reverui";
+import type { $UI } from "reverui";
+
 type normal_route = (t?: any) => HTMLElement;
 type lazy_route = () => Promise<normal_route>;
 type route = (() => normal_route) | lazy_route;
@@ -10,6 +11,8 @@ type Routes = {
 class $RouterController {
 	static routes: Routes;
 	static parent: HTMLElement;
+
+	static renderer: typeof $UI;
 }
 
 const fallBackComponent = () => () => document.createElement("div");
@@ -47,9 +50,14 @@ export function $Link({
 	return link;
 }
 
-export function $Router(routes: Routes, parent?: HTMLElement) {
+export function $Router(
+	renderer: typeof $UI,
+	routes: Routes,
+	parent?: HTMLElement
+) {
 	$RouterController.routes = routes;
 	$RouterController.parent = parent ?? document.body;
+	$RouterController.renderer = renderer;
 
 	const component = routes[window.location.pathname] ?? fallBackComponent;
 
@@ -60,8 +68,8 @@ export function $Router(routes: Routes, parent?: HTMLElement) {
 			const target = ev.target;
 
 			if (target instanceof HTMLAnchorElement) {
-				const url = new URL(target.href)
-				if (url.host !== window.location.host) return
+				const url = new URL(target.href);
+				if (url.host !== window.location.host) return;
 				ev.preventDefault();
 				$goto(target.href);
 			}
@@ -76,12 +84,12 @@ export function $Router(routes: Routes, parent?: HTMLElement) {
 		const component = routes[window.location.pathname] ?? fallBackComponent;
 
 		// This avoid to check if the component is a Promise or not
-		Promise.resolve(component()).then((c) => $UI(c, parent, true));
+		Promise.resolve(component()).then((c) => renderer(c, parent, true));
 	});
 
 	// This avoid to check if the component is a Promise or not
 	Promise.resolve(component()).then((c) => {
-		$UI(c, parent, true);
+		renderer(c, parent, true);
 	});
 }
 
@@ -101,6 +109,6 @@ export function $goto(path: string, data?: any) {
 
 	// This avoid to check if the component is a Promise or not
 	Promise.resolve(component()).then((c) => {
-		$UI(c, $RouterController.parent, true);
+		$RouterController.renderer(c, $RouterController.parent, true);
 	});
 }
