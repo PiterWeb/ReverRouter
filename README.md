@@ -10,9 +10,10 @@ The router for [ReverUI](https://github.com/PiterWeb/ReverUI/)
 ```ts
 // main.ts
 
+import { $UI } from "reverui"; 
 import { $lazy, $Router } from "reverouter";
 
-$Router({
+$Router($UI ,{
 	"/": () => import("./Banner"), // Normal Route
 	"/todo": $lazy(() => import("./Todo")), // Lazy Route
 	"/counter": $lazy(() => import("./Counter")), // Lazy Route
