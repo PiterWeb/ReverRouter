@@ -60,6 +60,8 @@ export function $Router(routes: Routes, parent?: HTMLElement) {
 			const target = ev.target;
 
 			if (target instanceof HTMLAnchorElement) {
+				const url = new URL(target.href)
+				if (url.host !== window.location.host) return
 				ev.preventDefault();
 				$goto(target.href);
 			}
