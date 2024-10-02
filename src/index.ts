@@ -9,8 +9,6 @@ type Routes = {
 class $RouterController {
 	static routes: Routes;
 	static parent: HTMLElement;
-
-	static host: string;
 }
 
 const defaultComponent = () => document.createElement("div");
@@ -33,7 +31,7 @@ export function $Link({
 }: {
 	href: string;
 	className?: string;
-	children?: (() => HTMLElement) | string | number;
+	children?: JSX.IntrinsicElements[keyof JSX.IntrinsicElements] | string | number;
 }) {
 	const link = document.createElement("a");
 
@@ -46,10 +44,10 @@ export function $Link({
 export function $Router(routes: Routes, parent?: HTMLElement) {
 	$RouterController.routes = routes;
 	$RouterController.parent = parent ?? document.body;
-	$RouterController.host = window.location.host;
 
 	const component = routes[window.location.pathname] ?? defaultComponent;
 
+    // Handles all <a> elements navigation
 	document.body.addEventListener(
 		"click",
 		(ev) => {
@@ -63,20 +61,24 @@ export function $Router(routes: Routes, parent?: HTMLElement) {
 		false
 	);
 
+    // Handles forward backward browser buttons
 	window.addEventListener("popstate", (ev) => {
 		history.replaceState(null, "", window.location.href);
 
 		const component = routes[window.location.pathname] ?? defaultComponent;
 
+	    // This avoid to check if the component is a Promise or not
 		Promise.resolve(component).then((c) => {
 			$UI(c, parent, true);
 		});
 	});
 
+    // (IDK if it works)
 	window.addEventListener("hashchange", () => {
 
 		const component = routes[window.location.pathname] ?? defaultComponent;
 
+	    // This avoid to check if the component is a Promise or not
 		Promise.resolve(component).then((c) => {
 			$UI(c, parent, true);
 		});
