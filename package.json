@@ -1,6 +1,6 @@
 {
   "name": "reverouter",
-  "version": "1.0.0",
+  "version": "1.5.0",
   "description": "Effortless Routing for ReverUI",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

@@ -1,6 +1,7 @@
 import { $UI } from "reverui";
-
-type route = ((t?: any) => HTMLElement) | Promise<(t?: any) => HTMLElement>;
+type normal_route = (t?: any) => HTMLElement;
+type lazy_route = () => Promise<normal_route>;
+type route = (() => normal_route) | lazy_route;
 
 type Routes = {
 	"/": route;
@@ -11,18 +12,20 @@ class $RouterController {
 	static parent: HTMLElement;
 }
 
-const defaultComponent = () => document.createElement("div");
+const fallBackComponent = () => () => document.createElement("div");
 
-type lazy_route = {
-	default: route;
+type $lazy_route_module = {
+	default: normal_route;
 };
 
-export async function $lazy<T extends Promise<P>, P extends lazy_route>(
+export function $lazy<T extends Promise<P>, P extends $lazy_route_module>(
 	importComponent: () => T
 ) {
-	const modulePromise = await importComponent();
+	return async () => {
+		const modulePromise = await importComponent();
 
-	return modulePromise.default;
+		return modulePromise.default;
+	};
 }
 
 export function $Link({
@@ -31,7 +34,10 @@ export function $Link({
 }: {
 	href: string;
 	className?: string;
-	children?: JSX.IntrinsicElements[keyof JSX.IntrinsicElements] | string | number;
+	children?:
+		| JSX.IntrinsicElements[keyof JSX.IntrinsicElements]
+		| string
+		| number;
 }) {
 	const link = document.createElement("a");
 
@@ -45,9 +51,9 @@ export function $Router(routes: Routes, parent?: HTMLElement) {
 	$RouterController.routes = routes;
 	$RouterController.parent = parent ?? document.body;
 
-	const component = routes[window.location.pathname] ?? defaultComponent;
+	const component = routes[window.location.pathname] ?? fallBackComponent;
 
-    // Handles all <a> elements navigation
+	// Handles all <a> elements navigation
 	document.body.addEventListener(
 		"click",
 		(ev) => {
@@ -61,31 +67,18 @@ export function $Router(routes: Routes, parent?: HTMLElement) {
 		false
 	);
 
-    // Handles forward backward browser buttons
+	// Handles forward / backward browser buttons
 	window.addEventListener("popstate", (ev) => {
 		history.replaceState(null, "", window.location.href);
 
-		const component = routes[window.location.pathname] ?? defaultComponent;
+		const component = routes[window.location.pathname] ?? fallBackComponent;
 
-	    // This avoid to check if the component is a Promise or not
-		Promise.resolve(component).then((c) => {
-			$UI(c, parent, true);
-		});
-	});
-
-    // (IDK if it works)
-	window.addEventListener("hashchange", () => {
-
-		const component = routes[window.location.pathname] ?? defaultComponent;
-
-	    // This avoid to check if the component is a Promise or not
-		Promise.resolve(component).then((c) => {
-			$UI(c, parent, true);
-		});
+		// This avoid to check if the component is a Promise or not
+		Promise.resolve(component()).then((c) => $UI(c, parent, true));
 	});
 
 	// This avoid to check if the component is a Promise or not
-	Promise.resolve(component).then((c) => {
+	Promise.resolve(component()).then((c) => {
 		$UI(c, parent, true);
 	});
 }
@@ -102,10 +95,10 @@ export function $goto(path: string, data?: any) {
 	history.pushState({ props: data }, "", path);
 
 	const component =
-		$RouterController.routes[window.location.pathname] ?? defaultComponent;
+		$RouterController.routes[window.location.pathname] ?? fallBackComponent;
 
 	// This avoid to check if the component is a Promise or not
-	Promise.resolve(component).then((c) => {
+	Promise.resolve(component()).then((c) => {
 		$UI(c, $RouterController.parent, true);
 	});
 }
