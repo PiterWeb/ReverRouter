@@ -1,4 +1,4 @@
-# Rever(R)outer 📦
+# Rever(r)outer 📦
 
 The router for [ReverUI](https://github.com/PiterWeb/ReverUI/)
 
