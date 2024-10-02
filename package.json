@@ -1,6 +1,6 @@
 {
-  "name": "reverui",
-  "version": "0.4.0",
+  "name": "reverouter",
+  "version": "1.0.0",
   "description": "Effortless Routing for ReverUI",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -20,8 +20,8 @@
   },
   "keywords": [
     "react",
-    "ui",
-    "preact",
+    "react-router",
+    "router",
     "reactivity",
     "reverui",
     "rever"
@@ -31,7 +31,9 @@
   "devDependencies": {
     "ts-node": "^10.9.2",
     "tsup": "^8.3.0",
-    "typescript": "^5.6.2",
-    "vite": "^5.4.7"
+    "typescript": "^5.6.2"
+  },
+  "dependencies": {
+    "reverui": "^0.4.2"
   }
 }
