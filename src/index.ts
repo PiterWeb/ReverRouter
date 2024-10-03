@@ -6,11 +6,13 @@ type route = (() => normal_route) | lazy_route;
 
 type Routes = {
 	"/": route;
-	[a: string]: route;
+	"404"?: route;
+	[a: string]: route | undefined;
 };
 class $RouterController {
 	static routes: Routes;
 	static parent: HTMLElement;
+	static config: $RouterConfig
 
 	static renderer: typeof $UI;
 }
@@ -50,16 +52,26 @@ export function $Link({
 	return link;
 }
 
+interface $RouterConfig {
+	/** Default: false, This property makes the router only handle known routes defined in the {@link Routes} object */
+	handleOnlyKnownRoutes: boolean;
+}
+
 export function $Router(
 	renderer: typeof $UI,
 	routes: Routes,
+	config?: $RouterConfig,
 	parent?: HTMLElement
 ) {
 	$RouterController.routes = routes;
 	$RouterController.parent = parent ?? document.body;
 	$RouterController.renderer = renderer;
+	$RouterController.config = config ?? {} as $RouterConfig;
 
-	const component = routes[window.location.pathname] ?? fallBackComponent;
+	const component =
+		routes[window.location.pathname] ?? routes[404] ?? fallBackComponent;
+
+	const routePaths = Object.keys(routes);
 
 	// Handles all <a> elements navigation
 	document.body.addEventListener(
@@ -69,7 +81,12 @@ export function $Router(
 
 			if (target instanceof HTMLAnchorElement) {
 				const url = new URL(target.href);
-				if (url.host !== window.location.host) return;
+
+				// Decides if the route should be handled or not
+				if (config?.handleOnlyKnownRoutes) {
+					if (!routePaths.includes(url.pathname)) return;
+				} else if (url.host !== window.location.host) return;
+
 				ev.preventDefault();
 				$goto(target.href);
 			}
@@ -81,7 +98,10 @@ export function $Router(
 	window.addEventListener("popstate", (ev) => {
 		history.replaceState(null, "", window.location.href);
 
-		const component = routes[window.location.pathname] ?? fallBackComponent;
+		const component =
+			routes[window.location.pathname] ??
+			routes[404] ??
+			fallBackComponent;
 
 		// This avoid to check if the component is a Promise or not
 		Promise.resolve(component()).then((c) => renderer(c, parent, true));
@@ -105,7 +125,9 @@ export function $goto(path: string, data?: any) {
 	history.pushState({ props: data }, "", path);
 
 	const component =
-		$RouterController.routes[window.location.pathname] ?? fallBackComponent;
+		$RouterController.routes[window.location.pathname] ??
+		$RouterController.routes[404] ??
+		fallBackComponent;
 
 	// This avoid to check if the component is a Promise or not
 	Promise.resolve(component()).then((c) => {
