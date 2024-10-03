@@ -1,3 +1,5 @@
+![](https://badgen.net/bundlephobia/minzip/reverouter)
+
 # Rever(r)outer 📦
 
 The router for [ReverUI](https://github.com/PiterWeb/ReverUI/)
