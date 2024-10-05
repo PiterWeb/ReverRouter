@@ -1,6 +1,6 @@
 {
   "name": "reverouter",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Effortless Routing for ReverUI",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -29,7 +29,7 @@
   "author": "PiterWeb",
   "license": "ISC",
   "devDependencies": {
-    "reverui": "^0.4.2",
+    "reverui": "^0.5.0",
     "ts-node": "^10.9.2",
     "tsup": "^8.3.0",
     "typescript": "^5.6.2"
